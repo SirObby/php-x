@@ -1,0 +1,44 @@
+version: "3"
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports: 
+      - "8080:80"
+    networks:
+      - internal
+    volumes:
+      - ./data/:/var/www/html/
+      - ./logs/nginx:/var/log/nginx/
+  php:
+    build:
+      context: .
+      dockerfile: php-fpm/Dockerfile
+    #image: php:fpm-alpine
+    networks:
+      - internal
+    volumes:
+      - ./data/:/var/www/html/
+      - ./logs/php.log:/var/log/fpm-php.www.log
+    links:
+      - db
+  db:
+    image: postgres
+    hostname: db
+    networks:
+      - internal
+    environment:
+      POSTGRES_PASSWORD: postgress-password
+    ports:
+      - 5432:5432
+  adminer:
+    image: adminer
+    restart: always
+    networks:
+      - internal
+    ports:
+      - 80:8080
+networks:
+  internal:
+    driver: bridge
